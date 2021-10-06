@@ -1,0 +1,11 @@
+﻿@model HomeIndexViewModel
+@{
+    ViewData["Title"] = "View product page";
+}
+
+<div class="products-list">
+    @await Html.PartialAsync("../Home/_ProductCard", Model.Product)
+</div>
+
+<h1>Description</h1>
+<p>@Model.Product.Description</p>

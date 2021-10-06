@@ -1,0 +1,33 @@
+﻿@model Practice_11.Models.Tasks.TasksIndexViewModel
+@inject Practice_11.UI.Services.Interfaces.ITasksService tasksService
+
+@{
+    ViewData["Title"] = "Tasks";
+    string GetTaskColor(int userId) => userId == Model.AuthUserId ? "background-color:lawngreen" : "";
+    bool AuthenticatedUserTask(int userId) => userId == Model.AuthUserId; 
+}
+
+@if (User.Identity.IsAuthenticated)
+{
+    <a class="add-task" href="/tasks/add"><i class="fas fa-plus"></i></a>
+}
+
+
+<div class="todo-list">
+    @foreach (var task in Model.Tasks)
+    {
+    <div class="task" style="@GetTaskColor(task.UserId)">
+            @task.Text
+        <div class="task-controls">
+            @if (AuthenticatedUserTask(task.UserId))
+            {
+                <a class="edit-task" href="/tasks/edit?id=@task.Id"><i class="fas fa-pen"></i></a>
+                <a href="/tasks/delete?id=@task.Id"><i class="fas fa-trash"></i></a>
+                <a href="/tasks/delete?id=@task.Id" class="complete-task"><i class="fas fa-check-double"></i></a>
+            }
+        </div>
+        </div>
+    }
+</div>
+
+

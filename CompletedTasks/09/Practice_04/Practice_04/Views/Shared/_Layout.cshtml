@@ -1,0 +1,82 @@
+﻿@inject Practice_04.Services.Interfaces.ISessionService sessionService
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <script src="https://kit.fontawesome.com/fc9e6ab659.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+    @await Html.PartialAsync("_Basket", sessionService.GetBasketProducts(Context, "cart"))
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-warning border-bottom box-shadow mb-3">
+            <div class="container">
+                @Html.ActionLink("Practice_04", "Index", "Home")
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            @Html.ActionLink("Home", "Index", "Home", null, new
+                            {
+                                @class = "nav-link text-dark"
+                            })
+                        </li>
+                        <li class="nav-item">
+                            @Html.ActionLink("Privacy", "Privacy", "Home", null, new
+                            {
+                                @class = "nav-link text-dark"
+                            })
+                        </li>
+                        <li class="nav-item" style="padding-left: 40px;">
+                            <button data-toggle="modal" data-target="#exampleModal" type="button" class="btn btn-primary position-relative">
+                                <i class="fas fa-shopping-basket"></i>
+                                <span id="basket-products-counter" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                    @sessionService.GetBasketProducts(Context, "cart")?.Count
+                                </span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                @using (Html.BeginForm("SearchProduct", "Home", new
+                {
+                    @class = "search-form",
+                }))
+                {
+            <div class="input-group mb-3">
+                @Html.TextBox("stchText", "", new 
+                {
+                    @class = "form-control",
+                    placeholder = "Product name",
+                })
+                <button class="btn bg-primary btn-srch" style="color: white;" id="button-addon2">Search</button>
+            </div>
+                }
+            </div>
+
+        </nav>
+
+    </header>
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2021 - Practice_04 - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

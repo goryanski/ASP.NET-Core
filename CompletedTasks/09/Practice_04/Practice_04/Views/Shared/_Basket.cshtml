@@ -1,0 +1,43 @@
+﻿@inject Practice_04.Storage.ProductsStorage productsStorage
+@model List<ProductBasketViewModel>
+
+@{ var prods = Model.GroupBy(prod => prod.Name).ToList(); }
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Basket</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @if (Model.Count > 0)
+                {
+    <ul class="list-group">
+        @foreach (var prod in prods)
+        {
+        <li class="list-group-item" style="display: flex; justify-content: space-between;">
+            <div style="align-self: center;">@prod.Key</div>
+            <div>
+                @Html.TextBox("prodCount", prod.Count(), new
+                {
+                    @class = "form-control",
+                    type = "number",
+                    step = "1",
+                    min = "1",
+                    max = "99",
+                })
+            </div>
+        </li>}
+    </ul> }
+                else
+                {
+    <h3>Empty</h3>}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

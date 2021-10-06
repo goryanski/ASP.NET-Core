@@ -1,0 +1,34 @@
+﻿body {
+}
+.validation-summary-errors, .field-validation-error {
+    color: red;
+}
+.login-container form div, .register-container form div {
+    margin-bottom: 20px !important;
+}
+
+.form-control {
+    width: 20%;
+    text-align: center;
+    margin: 0 auto;
+}
+
+
+
+
+@media (max-width: 800px) {
+    .main-container form input.form-control {
+        width: 40%;
+    }
+    .main-container form .btn {
+        width: 20%;
+    }
+}
+@media (max-width: 500px) {
+    .main-container form input.form-control {
+        width: 80%;
+    }
+    .main-container form .btn {
+        width: 40%;
+    }
+}

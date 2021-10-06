@@ -1,0 +1,38 @@
+﻿@using Practice_04.Storage.Models;
+@model Product
+
+<div class="card product-card" style="width: 18rem;">
+    <img src=@Model.Photo width="100" class="card-img-top" alt="...">
+    <div class="card-body" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <h5 class="card-title">@Model.Name</h5>
+            <p class="card-text">Rating: @Model.Rating</p>
+            <p class="card-text">Price: @Model.Price </p>
+        </div>
+
+        <div class="product-action-buttons" style="display: flex; justify-content: space-evenly; margin-top: 20px;">
+
+
+            @* здесь ссылки оставим в <a> потому что иначе не получится вложить иконки *@
+            <a class="btn btn-primary" href="/Product/ViewProduct?id=@Model.Id">
+                <i class="far fa-eye"></i>
+            </a>
+            <a class="btn btn-primary" href="/Product/Index?id=@Model.Id">
+                <i class="fas fa-pen"></i>
+            </a>
+
+            @using (Html.BeginForm("DeleteProduct", "Product", FormMethod.Post))
+            {
+                @Html.Hidden("id", Model.Id)
+                <button type"button" class="btn btn-primary"><i class="fas fa-trash"></i></button>
+            }
+
+
+            @using (Html.BeginForm("AddToBasket", "Basket", FormMethod.Post))
+            {
+                @Html.Hidden("id", Model.Id)
+                <button class="btn btn-success"><i class="fas fa-shopping-basket"></i></button>
+            }
+        </div>
+    </div>
+</div>

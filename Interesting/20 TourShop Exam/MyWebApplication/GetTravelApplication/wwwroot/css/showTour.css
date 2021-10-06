@@ -1,0 +1,39 @@
+﻿body {
+    background-color: #2e2e2e;
+}
+
+.btn-container {
+    display: flex;
+    justify-content: space-evenly;
+    color: white;
+    margin: 30px;
+}
+.btn-container a:hover {
+    color: black !important;
+    cursor: pointer;
+}
+
+.tour-event {
+    margin: 5%;
+    border-top: 1px solid white;
+    padding-top: 40px;
+}
+
+.tour-event-description {
+    width: 60%;
+    margin-right: 10%;
+}
+
+
+
+@media (max-width: 800px) {
+    .tour-events-container .tour-event-content {
+        flex-direction: column !important;
+    }
+    .tour-events-container .tour-event-content p {
+        width: 100%;
+    }
+}
+
+
+

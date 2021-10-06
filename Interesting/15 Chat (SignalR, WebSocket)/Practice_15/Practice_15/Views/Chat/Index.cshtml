@@ -1,0 +1,225 @@
+﻿<div id="chat">
+    <div class="section-users">
+        <p>Users online:</p>
+        <ul class="list-group list-users">
+        </ul>
+        <div class="create-user-container hidden mt-4">
+            <input type="text" class="new-group-name-field" placeholder="Enter new group name..." />
+            <button id="btn-add-new-group" class="btn btn-primary mt-2">Add</button>
+        </div>
+    </div>
+    <div class="section-chats">
+        <p>Chats:</p>
+        <ul class="list-group list-chats">
+        </ul>
+    </div>
+
+    <div class="section-messages hidden">
+        <textarea class="txtDisplay" readonly rows="25" cols="65"></textarea>
+        <div class="mt-5 send-text-container">
+            <textarea class="txtField" rows="2" cols="65"></textarea>
+            <button id="btn-send-msg" class="btn btn-primary">Send</button>
+        </div>
+    </div>
+</div>
+
+
+
+
+@section Scripts {
+    <script src="~/js/signalr/dist/browser/signalr.min.js" asp-append-version="true"></script>
+    <script>
+        $(document).ready(() => {
+            const hubConnection = new signalR.HubConnectionBuilder()
+                .withUrl('/chathub')
+                .build();
+            let currentUser = {
+                id: 0,
+                username: '',
+                connectionId: ''
+            };
+            const UI = {
+                btnSend$: $('#btn-send-msg'),
+                txtField$: $('.txtField'),
+                txtDisplay$: $('.txtDisplay'),
+                chatsList$: $('.list-chats'),
+                messagesSection$: $('.section-messages'),
+                usersList$: $('.list-users'),
+                createUserContainer$: $('.create-user-container'),
+                btnAddNewGroup$: $('#btn-add-new-group'),
+                newGroupNameField$: $('.new-group-name-field')
+            };
+            let activeChatId = 0;
+            let selectedUserId = 0;
+
+
+            
+            //#region New user connection 
+            // remember personalUserInfo
+            hubConnection.on('personalUserInfo', (info) => {
+                currentUser = info;
+            });
+
+            // set users online list for current user
+            hubConnection.on('usersList', (users) => {
+                UI.usersList$.html('');
+                $.each(users, function () {
+                    if (currentUser.id != this.id) { // (except current user)
+                        UI.usersList$.append(`<li class="list-group-item list-users-item" data-user-id="${this.id}">${this.username}</li>`);
+                    }
+                });
+                userSelectEvent();
+            });
+
+            // add set this user to users online list for Others users (except current)
+            hubConnection.on('newUserConnected', (user) => {
+                UI.usersList$.append(`<li class="list-group-item list-users-item" data-user-id="${user.id}">${user.username}</li>`);
+                userSelectEvent();
+            });
+
+            // set chats list for current user (from db)
+            hubConnection.on('chatsList', (userChats) => {
+                $.each(userChats, function () {
+                    UI.chatsList$.append(`<li class="list-group-item list-chat-item" data-chat-id="${this.id}" data-chat-messages="${this.messages}">${this.name}</li>`);
+                });
+                ChatSelectEvent();
+            });
+
+            //#region user/chat Select Event
+            function userSelectEvent() {
+                $('.list-users-item').click(function () {
+                    let items = document.querySelector('.list-users').childNodes;
+
+                    for (var i = 0; i < items.length; i++) {
+                        if (items[i].nodeName === 'LI') { // because items[0] is some object "text"
+                            if (items[i] === this) {
+                                $(items[i]).addClass('active'); // the same as ChatSelectEvent()
+
+                                // create a chat with selected user
+                                UI.createUserContainer$.removeClass('hidden'); // show add group form
+                                // remember selected user in order to add him to chat later
+                                selectedUserId = Number($(items[i]).data('user-id'));
+                            }
+                            else {
+                                $(items[i]).removeClass('active');
+                            }
+                        }
+                    }
+                });
+            }
+            function ChatSelectEvent() {
+                $('.list-chat-item').click(function () {
+                    let items = document.querySelector('.list-chats').childNodes;
+
+                    for (var i = 0; i < items.length; i++) {
+                        if (items[i].nodeName === 'LI') { // because items[0] is some object "text"
+                            if (items[i] === this) {
+                                // to see that chat is selected in chats list (set selection color)
+                                $(items[i]).addClass('active');
+                                // alow to wtite messages in this chat
+                                UI.messagesSection$.removeClass('hidden');
+
+                                // set this chat as active to get messages to him from db
+                                activeChatId = Number($(items[i]).data('chat-id'));
+                                hubConnection.invoke('getChatMessages', activeChatId);
+
+                                // remove unreadMessagesCount from innerText of <li> (near chat name in chat list)
+                                let innerText = $(items[i]).text();
+                                let idx = $(items[i]).text().indexOf(' (');
+                                if (idx != -1) {
+                                    $(items[i]).text(innerText.slice(0, idx));
+                                }
+                            }
+                            else {
+                                // remove selection color from previous chat (in chats list)
+                                $(items[i]).removeClass('active');
+                            }
+                        }
+                    }
+                });
+            }
+            //#endregion user/chat Select Event
+
+            //#endregion New user connection
+
+            //#region Add New Chat
+            hubConnection.on('addNewChat', (newChat) => {
+                UI.chatsList$.append(`<li class="list-group-item list-chat-item" data-chat-id="${newChat.id}" data-chat-messages="${newChat.messages}">${newChat.name}</li>`);
+                ChatSelectEvent();
+            });
+
+            UI.btnAddNewGroup$.click(() => {
+                let newGroupName = UI.newGroupNameField$.val();
+                if (newGroupName != '' && isGroupNameUnique(newGroupName)) {
+                    // add invited user to chat (in DB and to connect him by connectionId)
+                    hubConnection.invoke('addNewChat', currentUser, selectedUserId, UI.newGroupNameField$.val());
+                }
+                else {
+                    alert('New group name is not unique or field is empty')
+                }
+            });
+
+            function isGroupNameUnique(newGroupName) {
+                let items = document.querySelector('.list-chats').childNodes;
+                for (var i = 0; i < items.length; i++) {
+                    if (items[i].nodeName === 'LI') {
+                        let innerText = $(items[i]).text();
+                        let idx = $(items[i]).text().indexOf(' (');
+                        // get groupName without UnreadMessagesCount '(1)'
+                        let groupName = (idx != -1) ? innerText.slice(0, idx) : innerText;
+                        if (groupName === newGroupName) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+            //#endregion Add New Chat
+
+            //#region Send/receive messages
+            UI.btnSend$.click(() => {
+                if (UI.txtField$.val() != '' && activeChatId != 0) {
+                    hubConnection.invoke('sendMessage', { sender: currentUser.username, text: UI.txtField$.val(), chatId: activeChatId });
+                    UI.txtField$.val('');
+                }
+            });
+
+            hubConnection.on('receiveChatMessages', (messages) => {
+                // clear display and load from db all chat messages (by click on some chat)
+                UI.txtDisplay$.val(''); 
+                $.each(messages, function () {
+                    UI.txtDisplay$.val(UI.txtDisplay$.val() + `${this.sender}: ${this.text}\n`);
+                });
+            });
+
+            hubConnection.on('receiveMessage', (msg) => {
+                // if a chat with a new message is open now
+                if (msg.chatId === activeChatId) {
+                    UI.txtDisplay$.val(UI.txtDisplay$.val() + `${msg.sender}: ${msg.text}\n`);
+                }
+                else {
+                    // update countUnreadMessages from chat list
+                    let elem = document.querySelector(`[data-chat-id="${msg.chatId}"]`);
+
+                    // if closed chat hasn't any messages yet
+                    if (elem.innerText.indexOf(' (') == -1) {
+                        elem.innerText = elem.innerText + ' (1)';
+                    }
+                    else {
+                        // increase value of unreadMessagesCount (+1)
+                        let idxStart = elem.innerText.indexOf('(');
+                        let idxEnd = elem.innerText.indexOf(')');
+                        let countMessagesStr = elem.innerText.slice(idxStart + 1, idxEnd); // get value in ()
+                        let countMessagesNum = Number(countMessagesStr) + 1; // value++
+
+                        // replace old value to new
+                        elem.innerText = elem.innerText.replace(countMessagesStr, countMessagesNum);
+                    }
+                }
+            });
+            //#endregion Send/receive messages
+
+            hubConnection.start();
+        });
+    </script>
+}

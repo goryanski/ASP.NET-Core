@@ -1,0 +1,97 @@
+﻿@model ProductIndexViewModel
+@{
+    ViewData["Title"] = Model.Product is null ? "Add product form" : "Edit product form";
+    string aspAction = Model.Product is null ? "Create" : "Edit";
+    string btnName = aspAction;
+
+    string id = Model.Product is null ? "" : Model.Product.Id;
+    string name = Model.Product is null ? "" : Model.Product.Name;
+    string description = Model.Product is null ? "" : Model.Product.Description;
+    decimal price = Model.Product is null ? 0 : Model.Product.Price;
+    int rating = Model.Product is null ? 0 : Model.Product.Rating;
+    string photo = Model.Product is null ? "" : Model.Product.Photo;
+}
+
+<div class="container">
+    @using (Html.BeginForm(aspAction, "Product", FormMethod.Post, new
+    {
+        enctype = "multipart/form-data"
+    }))
+    {
+        @Html.Hidden("id", 1)
+        <div style="margin-bottom: 1.5rem">
+            @Html.LabelFor(m => m.Product.Photo, "Photo", new
+       {
+           @class = "form-label"
+       })
+            @Html.TextBoxFor(m => m.Product.Photo, "", new
+       {
+           type = "file",
+           @class = "form-control",
+       })
+        </div>
+
+        <div style="margin-bottom: 1.5rem">
+            @Html.LabelFor(m => m.Product.Name,
+           "Name (must be 3-30 symbols, English language, first a letter, only letters, gigits, spaces)", new
+       {
+           @class = "form-label"
+       })
+            @Html.TextBoxFor(m => m.Product.Name, name, new
+       {
+           @class = "form-control",
+           required = "",
+           pattern = "^[a-zA-Z][a-zA-Z0-9 ]{2,29}$",
+           placeholder = "Enter product name..."
+       })
+        </div>
+
+        <div style="margin-bottom: 1.5rem">
+            @Html.LabelFor(m => m.Product.Description,
+           "Description (at least 6 symbols, English language, can be spaces, digits, ',' and '.')", new
+       {
+           @class = "form-label"
+       })
+            @Html.TextBoxFor(m => m.Product.Description, description, new
+       {
+           @class = "form-control",
+           required = "",
+           pattern = "[A-Za-z0-9 ,.]{6,}",
+           placeholder = "Enter product description..."
+       })
+        </div>
+
+        <div style="margin-bottom: 1.5rem">
+            @Html.LabelFor(m => m.Product.Price,
+           "Price (if double - use ',')", new
+       {
+           @class = "form-label"
+       })
+            @Html.TextBoxFor(m => m.Product.Price, price.ToString(), new
+       {
+           @class = "form-control",
+           pattern = "^[0-9]*[,]?[0-9]+$"
+       })
+        </div>
+
+        <div style="margin-bottom: 1.5rem">
+            @Html.LabelFor(m => m.Product.Rating,
+           "Rating", new
+       {
+           @class = "form-label"
+       })
+            @Html.TextBoxFor(m => m.Product.Rating, rating.ToString(), new
+       {
+           type = "number",
+           @class = "form-control",
+           step = "1",
+           min = "1",
+           max = "5"
+       })
+        </div>
+
+        @Html.Hidden("id", id)
+        @Html.Hidden("prevPhoto", photo)
+        <button class="btn btn-primary">@btnName</button>}
+</div>
+

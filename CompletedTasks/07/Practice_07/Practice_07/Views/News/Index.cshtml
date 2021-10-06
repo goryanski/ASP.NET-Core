@@ -1,0 +1,18 @@
+﻿@model NewsIndexViewModel
+
+@{
+    ViewData["Title"] = "News";
+}
+
+<ul class="list-group">
+    @foreach (var item in Model.News)
+    {
+        <li class="list-group-item">
+            <div style="display: flex; justify-content: space-between;">
+                <h2>@item.Title</h2>
+                <h4>@item.Date.ToShortDateString()</h4>
+            </div>
+            <div>@item.Text</div>
+        </li>
+    }
+</ul>

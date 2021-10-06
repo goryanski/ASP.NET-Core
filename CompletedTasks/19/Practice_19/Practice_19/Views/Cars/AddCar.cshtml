@@ -1,0 +1,75 @@
+﻿@using System.Globalization
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@inject Practice_19.Utils.AppUtils utils
+
+@{ ViewData["Title"] = "Add car";
+    var languages = utils.ListAvailableLanguages;
+    int counter = 1;
+}
+
+
+
+<form class="add-car-form">
+    @foreach (var lang in languages)
+    {
+<div class="version">
+    <label>
+        @Localizer["inputName"] (@lang)
+        <input type="text" class="name-@counter" name="name" />
+    </label>
+    <label>
+        @Localizer["inputDescription"] (@lang)
+        <textarea class="description-@counter" name="description" rows="4" cols="50"></textarea>
+    </label>
+    <label>
+        @Localizer["inputCharacteristics"] (@lang)
+        <textarea class="characteristics-@counter" name="characteristics" rows="4" cols="50"></textarea>
+    </label>
+    <input type="hidden" class="lang-@counter" name="lang" value="@lang" />
+
+    @{ counter++; }
+</div>}
+    <button class="btn btn-primary btn-save">@Localizer["btnSave"]</button>
+    <a style="margin-left: 20px" asp-controller="Home" asp-action="Index">back</a>
+</form>
+
+
+@section Scripts {
+    <script>
+        $(document).ready(() => {
+            const UI = {
+                btnSave$: $('.btn-save')
+            }
+            UI.btnSave$.click(function (e) {
+                e.preventDefault();
+                let languagesVersions = [];
+                if (@languages.Length != 0) {
+                    for (var i = 1; i <= @languages.Length; i++) {
+                        let version = {
+                            name: $(`.name-${i}`).val(),
+                            description: $(`.description-${i}`).val(),
+                            characteristics: $(`.characteristics-${i}`).val(),
+                            lang: $(`.lang-${i}`).val()
+                        };
+                        languagesVersions.push(version);
+
+                        // clear fields to give a chance to add one more car
+                        $(`.name-${i}`).val('');
+                        $(`.description-${i}`).val('');
+                        $(`.characteristics-${i}`).val('');
+                    }
+                }
+                $.post([
+                    location.origin,
+                    'Cars',
+                    'AddCar'
+                ].join('/'),
+                    {
+                        carTranslateVersions: languagesVersions
+                    }
+                );
+            });
+        });
+    </script>
+}

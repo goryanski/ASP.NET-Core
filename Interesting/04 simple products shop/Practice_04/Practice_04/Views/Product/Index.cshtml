@@ -1,0 +1,48 @@
+﻿@model ProductIndexViewModel
+@{
+    ViewData["Title"] = Model.Product is null ? "Add product form" : "Edit product form";
+    string aspAction = Model.Product is null ? "Create" : "Edit";
+    string btnName = aspAction;
+
+    string id = Model.Product is null ? "" : Model.Product.Id;
+    string name = Model.Product is null ? "" : Model.Product.Name;
+    string description = Model.Product is null ? "" : Model.Product.Description;
+    decimal price = Model.Product is null ? 0 : Model.Product.Price;
+    int rating = Model.Product is null ? 0 : Model.Product.Rating;
+    string photo = Model.Product is null ? "" : Model.Product.Photo;
+}
+
+<div class="container">
+    <form method="post" action="/Product/@aspAction" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="avatarInput" class="form-label">Photo</label>
+            <input type="file" name="photo" class="form-control" id="photoInput">
+        </div>
+        <div class="mb-3">
+            <label for="productNameInput" class="form-label">
+            Name (must be 3-30 symbols, English language, first a letter, only letters, gigits, spaces)</label>
+            <input type="text" name="name" required  pattern="^[a-zA-Z][a-zA-Z0-9 ]{2,29}$" class="form-control" 
+                   id="productNameInput" placeholder="Enter product name..." value="@name">
+        </div>
+        <div class="mb-3">
+            <label for="productDescriptionInput" class="form-label">Description (at least 6 symbols, English language, can be spaces, digits, ',' and '.')</label>
+            <input type="text" required name="description" pattern="[A-Za-z0-9 ,.]{6,}" class="form-control" 
+                   id="productDescriptionInput" placeholder="Enter product description..." value="@description">
+        </div>
+        <div class="mb-3">
+            <label for="priceInput" class="form-label">Price (if double - use ',')</label>
+            <input type="text" pattern="^[0-9]*[,]?[0-9]+$" name="price"
+                   class="form-control" id="priceInput" value="@price">
+        </div>
+        <div class="mb-3">
+            <label for="ratingInput" class="form-label">Rating</label>
+            <input type="number" step="1" min="1" max="5" name="rating" 
+                   class="form-control" id="ratingInput" value="@rating">
+        </div>
+        <input type="hidden" name="id" value="@id" />
+        <input type="hidden" name="prevPhoto" value="@photo" />
+
+        <button class="btn btn-primary">@btnName</button>
+    </form>
+</div>
+

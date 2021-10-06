@@ -1,0 +1,105 @@
+﻿@using GetTravelApplication.Models.Tour;
+@model TourFullInfoViewModel
+
+@{
+    ViewData["Title"] = "Show Tour";
+
+    string bookTourTitle = User.Identity.IsAuthenticated ? "Tour booked!" : "Error";
+    string bookTourText = User.Identity.IsAuthenticated ? "Our manager will contact you by your email :)" : "You have to login first";
+}
+
+<link rel="stylesheet" href="~/css/showTour.css" />
+<div class="btn-container">
+    <a href="javascript:history.back()"
+       class="btn btn-outline-light">
+        Back
+    </a>
+    <!-- Button trigger modal -->
+    <a class="btn btn-outline-light" data-toggle="modal" data-target="#modalCenter">
+        Book now
+    </a>
+</div>
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="modalCenter" tabindex="-1" role="dialog" aria-labelledby="modalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLongTitle">@bookTourTitle</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @bookTourText
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Tour -->
+<div id="wrapper">
+    <div id="content">
+        <div class="tour-container" style="width: 80%; cursor: default">
+            <img src="@Model.Photo" alt="Tour photo" />
+            <div class="tour-info-container text-center">
+                <p>@Model.Name</p>
+                <p>@Model.CountryName</p>
+                <p>Days: @Model.DaysCount</p>
+                <p>
+                    Rating:&nbsp;&nbsp;
+                    @for (int i = 0; i < Model.Rating; i++)
+                    {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16">
+                            <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z" />
+                        </svg>
+                    }
+                </p>
+                <p>Price: @Model.Price $</p>
+            </div>
+            <div class="tour-events-container">
+                @foreach (var tourEvent in Model.TourEvents)
+                {
+                    <div class="tour-event">
+                        <p>DAY @tourEvent.DayNumber</p>
+                        <h4>@tourEvent.Name</h4>
+                        <p>Location: @tourEvent.LocationName</p>
+                        <div class="d-flex tour-event-content">
+                            <p class="tour-event-description">@tourEvent.Description</p>
+                            <div>
+                                <div>
+                                    <p class="mb-0">MEALS</p>
+                                    @{string meals = "";}
+                                    @foreach (var meal in tourEvent.Hotel.Meals)
+                                    {
+                                        meals += meal + "; ";
+                                    }
+                                    <p>@meals</p>
+                                </div>
+                                <div>
+                                    <p class="mb-0">HOTEL</p>
+                                    <p class="mb-0">@tourEvent.Hotel.Name</p>
+                                    <p>
+                                        @for (int i = 0; i < tourEvent.Hotel.Rating; i++)
+                                        {
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16">
+                                                <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z" />
+                                            </svg>
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

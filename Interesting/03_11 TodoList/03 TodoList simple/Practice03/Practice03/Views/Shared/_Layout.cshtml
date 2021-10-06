@@ -1,0 +1,73 @@
+﻿@using Practice03.Helpers
+
+<!doctype html>
+<html>
+<head>
+    <title>@ViewData["title"]</title>
+    <meta charset="utf-8" />
+    <script src="https://kit.fontawesome.com/fc9e6ab659.js" crossorigin="anonymous"></script>
+    <style>
+        .todo-list {
+            margin: 0 auto;
+            width: 60%;
+        }
+
+        .task-controls i {
+            margin-right: 25px;
+        }
+
+        .task-controls .fa-trash {
+            margin-right: 45px;
+        }
+
+        .todo-list .task {
+            background-color: burlywood;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 5px solid white;
+            margin: 10px;
+            font-size: 25px;
+            padding: 20px;
+            margin: 0;
+        }
+
+       .todo-list .task:hover {
+           cursor: pointer;
+       }
+
+       .todo-list .task input {
+           transform: scale(2);
+           align-self: center;
+           margin-right: 40px;
+       }
+
+       .add-task {
+           display: block;
+           text-align: center;
+           margin: 0 auto;
+           width: 60%;
+           font-size: 32px;
+           background-color: lightblue;
+           margin-bottom: 5px;
+           padding: 10px;
+           box-sizing: border-box;
+       }
+    </style>
+</head>
+<body>
+    @RenderBody()
+    <script type="text/javascript">
+        let checkBoxes = document.querySelectorAll('input[type="checkbox"]');
+        for (var i = 0; i < checkBoxes.length; i++) {
+            checkBoxes[i].onclick = function (e) {
+                // set task backgroundColor
+                e.target.parentNode.parentNode.style.backgroundColor = "grey";
+                // disable checkBox
+                e.target.disabled = true;
+                // prohibit editing the task
+                e.target.previousElementSibling.previousElementSibling.style.display = "none";
+            };
+        }
+    </script>
+</body>
+</html>

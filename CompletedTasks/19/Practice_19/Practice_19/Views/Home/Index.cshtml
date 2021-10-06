@@ -1,0 +1,44 @@
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+@using System.Globalization
+@inject IViewLocalizer Localizer
+@inject Practice_19.Services.ICarsService carsService
+
+
+@{ ViewData["Title"] = "Home Page";
+    var cars = (await carsService.GetCars(CultureInfo.CurrentCulture.Name)).ToList();
+}
+
+
+
+<h1>@Localizer["WelcomeTitle"]</h1>
+<div class="action-btns">
+    <form asp-controller="Cars" asp-action="AddCar" method="get">
+        <button class="btn btn-primary">@Localizer["btnAdd"]</button>
+    </form>
+</div>
+
+
+<div class="show-cars-container">
+    @Localizer["carsListLbl"]:
+@if (cars.Count != 0)
+{
+@foreach (var car in cars)
+{
+<div class="car">
+    <div class="show-car-name">@car.Name</div>
+    <div class="show-car-description">@car.Description</div>
+    <div class="show-car-characteristics">@car.Characteristics</div>
+</div>} }
+            else
+            {
+<div class="no-cars">There're no cars</div>}
+
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(() => {
+
+        });
+    </script>
+}

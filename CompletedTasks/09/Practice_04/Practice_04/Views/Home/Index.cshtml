@@ -1,0 +1,30 @@
+﻿@model HomeIndexViewModel
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+@Html.ActionLink("add new product", "Index", "Product", null, new {
+    @class = "nav-link text-dark bg-primary add-product-button",
+    style = "color: white !important; text-align: center;"
+})
+
+<div class="products-list">
+    @foreach (var product in Model.Products)
+    {
+        @await Html.PartialAsync("_ProductCard", product)
+    }
+</div>
+
+
+@section Scripts {
+    <script>
+        // you can't click srchButton if srchField is empty
+        $(document).ready(() => {
+            $('.btn-srch').click(function (e) {
+                if ($('input[name="stchText"]').val() === '') {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+}

@@ -1,0 +1,247 @@
+﻿<p>Notifications:</p>
+<p class="notifications-field"></p>
+
+<table class="hidden">
+    <tr>
+        <td class="0"></td>
+        <td class="1"></td>
+        <td class="2"></td>
+    </tr>
+    <tr>
+        <td class="3"></td>
+        <td class="4"></td>
+        <td class="5"></td>
+    </tr>
+    <tr>
+        <td class="6"></td>
+        <td class="7"></td>
+        <td class="8"></td>
+    </tr>
+</table>
+
+
+
+@section Scripts {
+    <script src="~/js/signalr/dist/browser/signalr.min.js" asp-append-version="true"></script>
+    <script>
+        $(document).ready(() => {
+            const hubConnection = new signalR.HubConnectionBuilder()
+                .withUrl('/gamehub')
+                .build();
+            let currentUser = {
+                connectionId: '',
+                type: '',
+                gameSymbol: '',
+                canMakeMove: false
+            };
+            const UI = {
+                gameField$: $('table'),
+                notificationsField$: $('.notifications-field'),
+                cell$: $('td')
+            }
+            const notification = {
+                wait: 'Please, wait for you opponent',
+                spectate: 'Watch the game and wait your turn',
+                beginWithMove: 'The game has begun! It is YOUR TURN to make a move!',
+                beginWithoutMove: 'The game has begun! WAIT your turn to make a move',
+                beginAfterDisconnection: 'Your opponent gave up. Play with new opponent! Now it is YOUR TURN to make a move!',
+                waitAfterDisconnection: 'Your opponent gave up. Wait for a new opponent',
+                makeMove: 'It is YOUR TURN to make a move!',
+                waitForMove: 'WAIT your turn to make a move',
+                wrongCell: 'Cell is not empty!',
+                youWon: 'You won!',
+                youLost: 'You lost!',
+                deadlock: 'No ways left. deadlock'
+            };
+            const gameSymbol = {
+                x: 'X',
+                o: 'O'
+            };
+            const clientType = {
+                Gamer_1: 'Gamer_1',
+                Gamer_2: 'Gamer_2',
+                Spectator: 'Spectator'
+            };
+            const showGameField = () => UI.gameField$.removeClass('hidden');
+            const hideGameField = () => UI.gameField$.addClass('hidden');
+            const notify = (notification) => UI.notificationsField$.text(notification);
+
+
+
+            //#region On connection
+            hubConnection.on('firstClientConnected', (info) => {
+                updateClientInfo(info);
+                notify(notification.wait);
+            });
+
+            hubConnection.on('secondClientConnected', (info) => {
+                updateClientInfo(info);
+            });
+
+            hubConnection.on('spectatorConnected', (info) => {
+                notify(notification.spectate);
+                showGameField();
+            });
+            //#endregion On connection
+
+
+            //#region Start game
+            hubConnection.on('beginWithMove', (info) => {
+                notify(notification.beginWithMove);
+                updateClientInfo(info);
+                showGameField();
+            });
+
+            hubConnection.on('beginWithoutMove', (info) => {
+                notify(notification.beginWithoutMove);
+                updateClientInfo(info);
+                showGameField();
+                clearField(); // for spectators
+            });
+
+            UI.cell$.click(function () {
+                if (currentUser.canMakeMove && currentUser.type != clientType.Spectator) {
+                    if ($(this).text() != '') {
+                        // cell already filled
+                        notify(UI.notificationsField$.text() + ' ... ' + notification.wrongCell);
+                    }
+                    else {
+                        // fill cell and pass the move
+                        $(this).text(currentUser.gameSymbol);
+                        hubConnection.invoke('playerMadeMove', currentUser.type, this.className);
+                        currentUser.canMakeMove = false;
+                        notify(notification.waitForMove);
+                    }
+                }
+            });
+            //#endregion Start game
+
+
+            //#region Game in process
+            hubConnection.on('passMove', (opponentCell) => {
+                // show opponent move
+                $(`.${opponentCell}`).text(getOpponentGameSymbol());
+                currentUser.canMakeMove = true;
+                notify(notification.makeMove);
+            });
+
+            function getOpponentGameSymbol() {
+                if (gameSymbol.o != currentUser.gameSymbol) {
+                    return gameSymbol.o;
+                }
+                else {
+                    return gameSymbol.x;
+                }
+            }
+            //#endregion Game in process
+
+
+            //#region Show game for spectators
+            hubConnection.on('watchTheGame', (playerType, selectedCell) => {
+                // show gamers moves
+                $(`.${selectedCell}`).text(getCurrentPlayerGameSymbol(playerType));
+            });
+
+            hubConnection.on('endOfViewing', () => {
+                setTimeout(clearField, 2000);
+            });
+
+            function getCurrentPlayerGameSymbol(playerType) {
+                if (clientType.Gamer_1 == playerType) {
+                    return gameSymbol.x;
+                }
+                else {
+                    return gameSymbol.o;
+                }
+            }
+            //#endregion Show game for spectators
+
+
+            //#region Game over
+            hubConnection.on('playerWon', () => {
+                notify(notification.youWon);
+                setTimeout(restart, 3000);
+            });
+
+            hubConnection.on('playerLost', () => {
+                notify(notification.youLost);
+                currentUser.canMakeMove = false;
+                setTimeout(restart, 3000);
+            });
+
+            hubConnection.on('noWaysLeft', () => {
+                notify(notification.deadlock);
+                currentUser.canMakeMove = false;
+                setTimeout(restart, 3000);
+            });
+
+            function restart() {
+                clearField();
+                // check if no one leave while was setTimeout
+                hubConnection.invoke('checkNoOneLeft');
+            }
+
+            function clearField() {
+                $.each(UI.cell$, function () {
+                    $(this).text('');
+                });
+            }
+
+            hubConnection.on('noOneLeftGame', () => {
+                switch (currentUser.type) {
+                    case clientType.Gamer_1:
+                        currentUser.canMakeMove = true;
+                        notify(notification.beginWithMove);
+                        break;
+                    case clientType.Gamer_2:
+                        currentUser.canMakeMove = false;
+                        notify(notification.beginWithoutMove);
+                        break;
+                }
+            });
+
+            // someone left game and there are no another clients waiting for game
+            hubConnection.on('opponentLeftGame', () => {
+                updateClientInfo(info);
+                notify(notification.waitAfterDisconnection);
+                currentUser.canMakeMove = false;
+            });
+            //#endregion Game over
+
+
+            //#region Disconnect - Someone leave the game
+            // Someone leave but there are another clients waiting for game (spectators)
+            hubConnection.on('beginAfterDisconnection', (info) => {
+                updateClientInfo(info);
+                restart();
+                notify(notification.beginAfterDisconnection);
+            });
+
+            // Someone leave and no one waiting for game
+            hubConnection.on('waitForNewOpponent', (info) => {
+                updateClientInfo(info);
+                restart();
+                notify(notification.waitAfterDisconnection);
+                currentUser.canMakeMove = false;
+            });
+            //#endregion Disconnect
+
+
+            function updateClientInfo(info) {
+                currentUser = info;
+                switch (currentUser.type) {
+                    case clientType.Gamer_1:
+                        currentUser.gameSymbol = gameSymbol.x;
+                        currentUser.canMakeMove = true;
+                        break;
+                    case clientType.Gamer_2:
+                        currentUser.gameSymbol = gameSymbol.o;
+                        currentUser.canMakeMove = false;
+                        break;
+                }
+            }
+
+            hubConnection.start();
+        });
+    </script>
+}

@@ -1,0 +1,17 @@
+﻿
+@*<p class="todo-list-instruction">*double click to select task</p>*@
+<a class="add-task" href="/tasks/add"><i class="fas fa-plus"></i></a>
+<div class="todo-list">
+    @foreach (var task in ViewBag.Tasks)
+    {
+        <div class="task">
+            @task.Text
+            <div class="task-controls">
+                <a class="edit-task" href="/tasks/edit?id=@task.Id"><i class="fas fa-pen"></i></a>
+                <a href="/tasks/delete?id=@task.Id"><i class="fas fa-trash"></i></a>
+                <input type="checkbox" name="@task.Id" />
+            </div>
+            
+        </div>
+    }
+</div>
